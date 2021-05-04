@@ -400,7 +400,11 @@ class Diameter:
         #APNs from DB
         APN_Configuration = ''
         imsi = self.get_avp_data(avps, 1)[0]                                                            #Get IMSI from User-Name AVP in request
-        imsi = binascii.unhexlify(imsi).decode('utf-8')                                                  #Convert IMSI
+        imsi = binascii.unhexlify(imsi).decode('utf-8')   
+        
+        
+        
+                                                       #Convert IMSI
         try:
             subscriber_details = database.GetSubscriberInfo(imsi)                                               #Get subscriber details
         except ValueError as e:
@@ -810,7 +814,7 @@ class Diameter:
         avp += self.generate_avp(277, 40, "00000001")                                                    #Auth-Session-State (No state maintained)
         avp += self.generate_avp(260, 40, "0000010a4000000c000028af000001024000000c01000000")            #Vendor-Specific-Application-ID for Cx
         
-        avp += self.generate_vendor_avp(602, "c0", 10415, str(binascii.hexlify(str.encode("sip:scscf.mnc" + str(self.MNC).zfill(3) + ".mcc" + str(self.MCC).zfill(3) + ".3gppnetwork.org:6060")),'ascii'))
+        avp += self.generate_vendor_avp(602, "c0", 10415, str(binascii.hexlify(str.encode("sip:scscf.ims.mnc" + str(self.MNC).zfill(3) + ".mcc" + str(self.MCC).zfill(3) + ".3gppnetwork.org:6060")),'ascii'))
 
 
         experimental_avp = ''                                                                                           #New empty avp for storing avp 297 contents
@@ -939,7 +943,7 @@ class Diameter:
 
         try:
             subscriber_details = database.GetSubscriberInfo(imsi)                                               #Get subscriber details
-            database.UpdateSubscriber(imsi, int(subscriber_details['SQN']) + 1, str(subscriber_details['RAND']))#Incriment SQN
+            #database.UpdateSubscriber(imsi, int(subscriber_details['SQN']) + 1, str(subscriber_details['RAND']))#Incriment SQN
         except:
             #Handle if the subscriber is not present in HSS return "DIAMETER_ERROR_USER_UNKNOWN"
             DiameterLogger.debug("Subscriber " + str(imsi) + " unknown in HSS for MAA")
@@ -950,10 +954,12 @@ class Diameter:
             response = self.generate_diameter_packet("01", "40", 303, 16777216, packet_vars['hop-by-hop-identifier'], packet_vars['end-to-end-identifier'], avp)     #Generate Diameter packet
             return response
         
-        key = subscriber_details['K']                                                               #Format keys
-        opc = subscriber_details['OPc']                                                             #Format keys
-        amf = subscriber_details['AMF']                                                             #Format keys
-        sqn = subscriber_details['SQN']                                                             #Format keys
+        
+        DiameterLogger.debug(subscriber_details)
+        key = subscriber_details[0]['k']                                                               #Format keys
+        opc = subscriber_details[0]['opc']                                                             #Format keys
+        amf = subscriber_details[0]['amf']                                                             #Format keys
+        sqn = subscriber_details[0]['sqn']                                                             #Format keys
 
         mcc, mnc = imsi[0:3], imsi[3:5]
         plmn = self.EncodePLMN(mcc, mnc)

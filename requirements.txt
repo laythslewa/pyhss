@@ -5,4 +5,4 @@ pymongo==3.10.1
 pysctp==0.6.1
 pysnmp==4.4.12
 mysql-connector-python
-
+pip install pycryptodome
